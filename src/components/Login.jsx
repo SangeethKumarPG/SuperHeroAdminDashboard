@@ -27,7 +27,7 @@ function Login() {
     if(response.status === 200){
       toast.success("Login Successfull");
       const {token} = response.data;
-      sessionStorage.setItem("token", token);
+      sessionStorage.setItem("token", JSON.stringify(token));
       setUsername("");
       setPassword("");
       navigate("/home");
