@@ -1,7 +1,7 @@
 import { Box, Card, Typography, CardContent } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import React, { useEffect, useState } from "react";
-import { getComplaintCountByDangerLevel, getComplaintLocations, getUniqueComplaintCountByType } from "../services/allAPI";
+import { getComplaintCountByDangerLevel, getComplaintLocations, getUniqueComplaintCountByType, getTokenHeader } from "../services/allAPI";
 import { toast } from "react-toastify";
 import MapComponent from "./MapComponent";
 
@@ -14,12 +14,8 @@ function Dashboard() {
   const getComplaintTypeCount = async () => {
     if (sessionStorage.getItem("token")) {
       console.log("Token present");
-      const token = JSON.parse(sessionStorage.getItem("token"));
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-      const response = await getUniqueComplaintCountByType(headers);
+
+      const response = await getUniqueComplaintCountByType(getTokenHeader());
       if (response.status === 200) {
         console.log("Response data", response.data);
         const formattedData = response.data.map((item) => ({
@@ -37,12 +33,7 @@ function Dashboard() {
 
   const getDangerLevelCount = async () => {
     if(sessionStorage.getItem("token")){
-      const token = JSON.parse(sessionStorage.getItem("token"));
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-      const response = await getComplaintCountByDangerLevel(headers);
+      const response = await getComplaintCountByDangerLevel(getTokenHeader());
       if (response.status === 200) {
         console.log("Response data", response.data);
         const formattedData = response.data.map((item) => ({
@@ -58,12 +49,7 @@ function Dashboard() {
 
   const getLatestLocations = async () => {
     if(sessionStorage.getItem("token")){
-      const token = JSON.parse(sessionStorage.getItem("token"));
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-      const response = await getComplaintLocations(headers);
+      const response = await getComplaintLocations(getTokenHeader());
       if(response.status === 200){
         console.log("Response data", response.data);
         setMarkers(response.data);
@@ -94,7 +80,7 @@ function Dashboard() {
   console.log("complaint type count", complaintTypeCount);
   return (
     <>
-      <div className="row mt-2">
+      <div className="row mt-5">
         <div className="col-md-4">
           <Card
             className="indexCard"

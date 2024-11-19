@@ -22,7 +22,7 @@ export const getTokenHeader = () => {
     let headers = {};
   sessionStorage.getItem("token")
     ? (headers = {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        Authorization: `Bearer ${JSON.parse(sessionStorage.getItem("token"))}`,
         "Content-Type": "application/json",
       })
     : (headers = { "Content-Type": "application/json" });

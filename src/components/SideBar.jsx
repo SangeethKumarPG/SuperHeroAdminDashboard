@@ -29,7 +29,7 @@ function SideBar({ setSelectedView, setIsCollapsed, isCollapsed }) {
   };
 
   return (
-    <Box sx={{ width: isCollapsed ? "60px" : "240px", bgcolor: "background.paper", transition: 'width 0.3s', margin:'0px' }}>
+    <Box sx={{ width: isCollapsed ? "60px" : "240px", bgcolor: "background.paper", transition: 'width 0.3s', margin:'40px 0px' }}>
       <IconButton onClick={handleToggleSidebar} sx={{ margin: '0px',
         display:{xs:'none', sm:'block'}
        }}>

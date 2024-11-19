@@ -36,7 +36,7 @@ function Home() {
   };
   return (
     <>
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}/>
+      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} style={{width: "100%"}}/>
       {isLoggedIn && (
         <Box display="flex" mt={2}>
           <Box
