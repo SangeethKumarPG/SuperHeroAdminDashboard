@@ -32,3 +32,7 @@ export const getTokenHeader = () => {
 export const getComplaintLocations = async (headers) => {
     return await commonAPI("GET", `${baseURL}/get-latest-complaint-locations`, {}, headers);
 }
+
+export const getAllComplaints = async (headers) => {
+    return await commonAPI("GET", `${baseURL}/get-all-complaints`, {}, headers);
+}
