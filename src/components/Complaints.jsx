@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Accordion,
   Box,
@@ -6,29 +7,39 @@ import {
   AccordionSummary,
   AccordionDetails,
   Pagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { Button, Typography } from "@mui/material";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
-import { getAllComplaints, getTokenHeader } from "../services/allAPI";
-import { toast } from "react-toastify";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  getAllComplaints,
+  getTokenHeader,
+  updateComplaintStatus,
+} from "../services/allAPI";
+import { toast } from "react-toastify";
 import MapComponent from "./MapComponent";
 
 function Complaints() {
   const [expandedComplaint, setExpandedComplaint] = useState(null);
   const [allComplaints, setAllComplaints] = useState([]);
+  const [filteredComplaints, setFilteredComplaints] = useState([]);
+  const [filter, setFilter] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const complaintsPerPage = 5; // Adjust this to set complaints per page
+  const complaintsPerPage = 5; // Complaints per page
   const [location, setLocation] = useState({ latitude: null, longitude: null });
-  const [markers, setMarkers] = useState([]);
+  const [complaintStatusUpdate, setComplaintStatusUpdate] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchComplaints = async () => {
     const response = await getAllComplaints(getTokenHeader());
     if (response.status === 200) {
-      console.log("Complaints data : ", response.data);
       setAllComplaints(response.data);
+      setFilteredComplaints(response.data); // Initialize filteredComplaints
     } else {
       toast.error("Error fetching complaints");
     }
@@ -37,6 +48,7 @@ function Complaints() {
   useEffect(() => {
     fetchComplaints();
   }, []);
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -48,16 +60,74 @@ function Complaints() {
     }
   }, []);
 
-  // Calculate pagination details
-  const totalPages = Math.ceil(allComplaints.length / complaintsPerPage);
+  // Filter complaints based on search and filter
+  useEffect(() => {
+    let filtered = allComplaints;
+
+    // Apply search filter
+    if (searchQuery) {
+      const lowercasedQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (complaint) =>
+          complaint.complaintType?.toLowerCase().includes(lowercasedQuery) ||
+          complaint.description?.toLowerCase().includes(lowercasedQuery) ||
+          complaint.createdDate?.toLowerCase().includes(lowercasedQuery) ||
+          complaint.dangerLevel?.toLowerCase().includes(lowercasedQuery)
+      );
+    }
+
+    // Apply additional filters
+    if (filter) {
+      filtered = filtered.filter((complaint) => {
+        switch (filter) {
+          case "immediate":
+            return [
+              "Danger To Life",
+              "Danger To Property",
+              "Danger To Safety",
+              "Danger To Animals",
+            ].includes(complaint.dangerLevel);
+          case "new":
+            return complaint.status === "open";
+          case "pending":
+            return complaint.status === "pending";
+          case "resolved":
+            return complaint.status === "resolved";
+          default:
+            return true;
+        }
+      });
+    }
+
+    setFilteredComplaints(filtered);
+  }, [searchQuery, filter, allComplaints]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredComplaints.length / complaintsPerPage);
   const startIndex = (currentPage - 1) * complaintsPerPage;
-  const currentComplaints = allComplaints.slice(
+  const currentComplaints = filteredComplaints.slice(
     startIndex,
     startIndex + complaintsPerPage
   );
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
+  };
+
+  const handleStatusUpdate = async (complaintData) => {
+    if (complaintStatusUpdate) {
+      const response = await updateComplaintStatus(
+        complaintData,
+        getTokenHeader()
+      );
+      if (response.status === 200) {
+        toast.success("Complaint status updated successfully");
+        fetchComplaints();
+      } else {
+        toast.error("Error updating complaint status");
+      }
+      setComplaintStatusUpdate({});
+    }
   };
 
   return (
@@ -73,9 +143,16 @@ function Complaints() {
           label="Search by category, danger level, description or date"
           variant="outlined"
           fullWidth
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
         <Button
           variant="outlined"
+          //reset filters
+          onClick={() => {
+            setSearchQuery("");
+            setFilter("");
+          }}
           sx={{
             height: "3.5rem",
             "&:hover": { backgroundColor: "red", color: "white" },
@@ -92,45 +169,29 @@ function Complaints() {
       >
         <Button
           variant="outlined"
-          sx={{
-            "&:hover": {
-              backgroundColor: "red",
-              color: "white",
-            },
-          }}
+          onClick={() => setFilter("immediate")}
+          sx={{ "&:hover": { backgroundColor: "red", color: "white" } }}
         >
           Immediate Attention
         </Button>
         <Button
           variant="outlined"
-          sx={{
-            "&:hover": {
-              backgroundColor: "orange",
-              color: "white",
-            },
-          }}
+          onClick={() => setFilter("new")}
+          sx={{ "&:hover": { backgroundColor: "orange", color: "white" } }}
         >
           New Issues
         </Button>
         <Button
           variant="outlined"
-          sx={{
-            "&:hover": {
-              backgroundColor: "yellowgreen",
-              color: "white",
-            },
-          }}
+          onClick={() => setFilter("pending")}
+          sx={{ "&:hover": { backgroundColor: "yellowgreen", color: "white" } }}
         >
           Pending Issues
         </Button>
         <Button
           variant="outlined"
-          sx={{
-            "&:hover": {
-              backgroundColor: "green",
-              color: "white",
-            },
-          }}
+          onClick={() => setFilter("resolved")}
+          sx={{ "&:hover": { backgroundColor: "green", color: "white" } }}
         >
           Resolved Issues
         </Button>
@@ -153,7 +214,7 @@ function Complaints() {
           <Typography variant="h6">Date</Typography>
         </Box>
       </Box>
-      {currentComplaints?.length > 0 ? (
+      {currentComplaints.length > 0 ? (
         currentComplaints.map((complaint, index) => (
           <Box key={complaint._id}>
             <Accordion
@@ -190,10 +251,39 @@ function Complaints() {
                   alignItems={"center"}
                   flexDirection={"column"}
                 >
-                  <Typography variant="h6">
-                    {complaint?.description}
-                  </Typography>
-                  <MapComponent latitude={location.latitude} longitude={location.longitude} markers={[{location:complaint?.location}]}/>
+                  <Typography variant="h6">{complaint?.description}</Typography>
+                  <FormControl fullWidth variant="outlined" className="p-2">
+                    <InputLabel id="status-select-label">
+                      Complaint Status
+                    </InputLabel>
+                    <Select
+                      labelId="status-select-label"
+                      value={complaint?.status}
+                      onChange={(e) => {
+                        e.preventDefault();
+                        const updatedStatus = e.target.value;
+                        setComplaintStatusUpdate({
+                          ...complaintStatusUpdate,
+                          complaintId: complaint?._id,
+                          status: updatedStatus,
+                        });
+                        handleStatusUpdate({
+                          complaintId: complaint?._id,
+                          status: updatedStatus,
+                        });
+                      }}
+                      aria-label="status-select"
+                    >
+                      <MenuItem value="open">Open</MenuItem>
+                      <MenuItem value="resolved">Resolved</MenuItem>
+                      <MenuItem value="pending">Pending</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <MapComponent
+                    latitude={location.latitude}
+                    longitude={location.longitude}
+                    markers={[{ location: complaint?.location }]}
+                  />
                 </Box>
               </AccordionDetails>
             </Accordion>

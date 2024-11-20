@@ -36,3 +36,7 @@ export const getComplaintLocations = async (headers) => {
 export const getAllComplaints = async (headers) => {
     return await commonAPI("GET", `${baseURL}/get-all-complaints`, {}, headers);
 }
+
+export const updateComplaintStatus = async (data, headers) => {
+  return await commonAPI("PUT", `${baseURL}/update-complaint-status`, data, headers);
+}
