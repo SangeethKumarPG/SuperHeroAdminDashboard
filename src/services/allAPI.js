@@ -40,3 +40,7 @@ export const getAllComplaints = async (headers) => {
 export const updateComplaintStatus = async (data, headers) => {
   return await commonAPI("PUT", `${baseURL}/update-complaint-status`, data, headers);
 }
+
+export const getComplaintSummary = async (headers) => {
+  return await commonAPI("GET", `${baseURL}/get-complaint-summary`, {}, headers);
+}

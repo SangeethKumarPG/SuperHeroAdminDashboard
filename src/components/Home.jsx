@@ -11,6 +11,7 @@ function Home() {
   const [selectedView, setSelectedView] = useState(0);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [complaintTypeFilter, setComplaintTypeFilter] = useState(null);
   const navigate = useNavigate();
   useEffect(() => {
     if (sessionStorage.getItem("token")) {
@@ -27,9 +28,9 @@ function Home() {
   const renderMainView = () => {
     switch (selectedView) {
       case 0:
-        return <Dashboard />;
+        return <Dashboard complaintTypeFilter={complaintTypeFilter} setComplaintTypeFilter={setComplaintTypeFilter} setSelectedView={setSelectedView}/>;
       case 1:
-        return <Complaints />;
+        return <Complaints complaintTypeFilter={complaintTypeFilter} setComplaintTypeFilter={setComplaintTypeFilter}/>;
       default:
         return <div>Invalid View</div>;
     }

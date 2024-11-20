@@ -35,10 +35,12 @@ function MapComponent({ latitude, longitude, markers = [] }) {
 
   return (
     <Card style={{ width: '100%', height: '550px' }}>
-      <CardContent style={{ padding: 0 }}>
+      <CardContent style={{ padding: 0 }} display="flex" flexDirection="column">
         <Typography variant="h6" align="center" gutterBottom>
           Locations
         </Typography>
+        <Typography variant="body2" align="center" color="textSecondary" component="p">*<img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png" alt="your location" width={'20px'} height={'20px'}/>your location</Typography>
+        <Typography variant="body2" align="center" color="textSecondary" component="p">*<img src="http://maps.google.com/mapfiles/ms/icons/red-dot.png" alt="marker" width={'20px'} height={'20px'}/>issue location</Typography>
         <div ref={mapRef} style={{ width: '100%', height: '500px' }} />
       </CardContent>
     </Card>

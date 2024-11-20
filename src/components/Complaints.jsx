@@ -24,7 +24,7 @@ import {
 import { toast } from "react-toastify";
 import MapComponent from "./MapComponent";
 
-function Complaints() {
+function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
   const [expandedComplaint, setExpandedComplaint] = useState(null);
   const [allComplaints, setAllComplaints] = useState([]);
   const [filteredComplaints, setFilteredComplaints] = useState([]);
@@ -75,7 +75,23 @@ function Complaints() {
           complaint.dangerLevel?.toLowerCase().includes(lowercasedQuery)
       );
     }
-
+    switch (complaintTypeFilter) {
+      case 0:
+        setFilter("immediate");
+        break;
+      case 1:
+        setFilter("new");
+        break;
+      case 2:
+        setFilter("pending");
+        break;
+      case 3:
+        setFilter("resolved");
+        break;
+      default:
+        setComplaintTypeFilter(null);
+        break;
+    }
     // Apply additional filters
     if (filter) {
       filtered = filtered.filter((complaint) => {
@@ -152,6 +168,7 @@ function Complaints() {
           onClick={() => {
             setSearchQuery("");
             setFilter("");
+            setComplaintTypeFilter(null);
           }}
           sx={{
             height: "3.5rem",
