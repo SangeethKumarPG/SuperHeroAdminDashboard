@@ -18,6 +18,7 @@ export const getComplaintCountByDangerLevel = async (headers) => {
     return await commonAPI("GET", `${baseURL}/get-complaint-count-by-danger-level`, {}, headers);
 }
 
+//set the token header for all API calls
 export const getTokenHeader = () => {
     let headers = {};
   sessionStorage.getItem("token")

@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// common API function to make HTTP requests
 export const commonAPI = async (httpRequest, url, requestBody, requestHeader)=>{
     const requestConfig = {
         method:httpRequest,

@@ -10,5 +10,9 @@ To get started, follow the steps below:
 3. Start the development server using `npm run dev`.
 4. Open your browser and go to `http://localhost:5173/`.
 
+NOTE: You will need to have Node.js and npm installed on your machine.
+- Kindly enable location permission for the browser if prompted.
+- Change the baseURL in the src/services/baseURL.js file to match the URL of your server.
+
 
 

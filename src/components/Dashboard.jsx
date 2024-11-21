@@ -10,6 +10,7 @@ import {
 } from "../services/allAPI";
 import { toast } from "react-toastify";
 import MapComponent from "./MapComponent";
+import ReactLoading from "react-loading";
 
 function Dashboard({
   complaintTypeFilter,
@@ -22,73 +23,77 @@ function Dashboard({
   const [markers, setMarkers] = useState([]);
   const [dashboardData, setDashboardData] = useState([]);
   const cardColors = ["red", "orange", "yellowgreen"];
-  const getDashboardCardsData = async () => {
-    if (sessionStorage.getItem("token")) {
-      const response = await getComplaintSummary(getTokenHeader());
-      if (response.status === 200) {
-        // console.log(response.data);
-        setDashboardData(response.data);
+  const [loading, setLoading] = useState(false); // General loading state for all API calls
+
+  // common method to fetch data from the backend and populate cards and charts
+  const fetchData = async () => {
+    setLoading(true); // Show spinner
+    try {
+      if (!sessionStorage.getItem("token")) {
+        toast.error("Please login to access dashboard");
+        return;
+      }
+
+      const [
+        summaryResponse,
+        complaintTypeResponse,
+        dangerLevelResponse,
+        locationsResponse,
+      ] = await Promise.all([
+        getComplaintSummary(getTokenHeader()),
+        getUniqueComplaintCountByType(getTokenHeader()),
+        getComplaintCountByDangerLevel(getTokenHeader()),
+        getComplaintLocations(getTokenHeader()),
+      ]);
+
+      if (summaryResponse.status === 200) {
+        setDashboardData(summaryResponse.data);
       } else {
         toast.error("Error fetching dashboard data");
       }
-    } else {
-      toast.error("Please login to access dashboard");
-    }
-  };
 
-  const getComplaintTypeCount = async () => {
-    if (sessionStorage.getItem("token")) {
-      const response = await getUniqueComplaintCountByType(getTokenHeader());
-      if (response.status === 200) {
-        const formattedData = response.data.map((item) => ({
-          label: item._id,
-          value: item.count,
-        }));
-        setComplaintTypeCount(formattedData);
+      if (complaintTypeResponse.status === 200) {
+        setComplaintTypeCount(
+          complaintTypeResponse.data.map((item) => ({
+            label: item._id,
+            value: item.count,
+          }))
+        );
       } else {
         toast.error("Error fetching complaint type count");
       }
-    } else {
-      toast.error("Please login to access dashboard");
-    }
-  };
 
-  const getDangerLevelCount = async () => {
-    if (sessionStorage.getItem("token")) {
-      const response = await getComplaintCountByDangerLevel(getTokenHeader());
-      if (response.status === 200) {
-        const formattedData = response.data.map((item) => ({
-          label: item._id,
-          value: item.count,
-        }));
-        setDangerLevelCount(formattedData);
+      if (dangerLevelResponse.status === 200) {
+        setDangerLevelCount(
+          dangerLevelResponse.data.map((item) => ({
+            label: item._id,
+            value: item.count,
+          }))
+        );
       } else {
         toast.error("Error fetching danger level count");
       }
-    }
-  };
 
-  const getLatestLocations = async () => {
-    if (sessionStorage.getItem("token")) {
-      const response = await getComplaintLocations(getTokenHeader());
-      if (response.status === 200) {
-        setMarkers(response.data);
+      if (locationsResponse.status === 200) {
+        setMarkers(locationsResponse.data);
       } else {
         toast.error("Error fetching latest locations");
       }
-    } else {
-      toast.error("Please login to access dashboard");
+    } catch (error) {
+      toast.error("An error occurred while fetching data");
+    } finally {
+      setLoading(false); // Hide spinner
     }
   };
 
+ 
+
   useEffect(() => {
-    getDashboardCardsData();
-    getComplaintTypeCount();
-    getDangerLevelCount();
-    getLatestLocations();
+    fetchData();
   }, []);
 
   useEffect(() => {
+    // Get's the user's current location and sets the location state on page load
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         setLocation({
@@ -98,6 +103,19 @@ function Dashboard({
       });
     }
   }, []);
+  if (loading) {
+    // Show spinner while loading
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
+        <ReactLoading type="spin" color="#1976d2" height={80} width={80} />
+      </Box>
+    );
+  }
 
   return (
     <Box display="flex" flexDirection="column" gap={4} mt={5}>
@@ -122,13 +140,13 @@ function Dashboard({
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "column",
-              transition: "transform 0.3s, background-color 0.3s", // smooth transition
+              transition: "transform 0.3s, background-color 0.3s", 
               "&:hover": {
-                transform: "scale(1.05)", // scale the card on hover
-                backgroundColor: "#1976d2", // change background on hover (you can customize this)
+                transform: "scale(1.05)", 
+                backgroundColor: "#1976d2", 
               },
               "&:active": {
-                transform: "scale(0.95)", // scale down on tap (click or touch)
+                transform: "scale(0.95)", 
               },
             }}
             onClick={() => {

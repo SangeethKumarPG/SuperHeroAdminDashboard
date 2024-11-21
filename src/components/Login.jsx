@@ -6,37 +6,44 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { toast } from "react-toastify";
 import { loginAPI } from "../services/allAPI";
 import { useNavigate } from "react-router-dom";
+import {Atom} from 'react-loading-indicators'
 
 function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleClickShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleLogin = async(e)=>{
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if(username === "" || password === ""){
+    if (username === "" || password === "") {
       toast.error("Please enter username and password");
       return;
     }
-    const response = await loginAPI({username:username, password:password});
-    if(response.status === 200){
-      toast.success("Login Successfull");
-      const {token} = response.data;
-      sessionStorage.setItem("token", JSON.stringify(token));
-      setUsername("");
-      setPassword("");
-      navigate("/home");
-    }else{
-      toast.error(response?.response?.data);
-      setUsername("");
-      setPassword("");
+    setLoading(true); // Show spinner
+    try {
+      const response = await loginAPI({ username, password });
+      if (response.status === 200) {
+        toast.success("Login Successful");
+        const { token } = response.data;
+        sessionStorage.setItem("token", JSON.stringify(token));
+        setUsername("");
+        setPassword("");
+        navigate("/home");
+      } else {
+        toast.error(response?.response?.data || "Login Failed");
+      }
+    } catch (error) {
+      toast.error("An error occurred during login");
+    } finally {
+      setLoading(false); // Hide spinner
     }
-  }
+  };
 
   return (
     <>
@@ -60,6 +67,7 @@ function Login() {
             }}
           >
             <h3 className="text-white text-center my-2">Login</h3>
+            {loading ? <Atom size={50} color="#fff" /> : <>
             <TextField
               variant="outlined"
               label="Username"
@@ -155,6 +163,7 @@ function Login() {
             >
               Login
             </Button>
+            </>}
           </div>
         </div>
       </div>

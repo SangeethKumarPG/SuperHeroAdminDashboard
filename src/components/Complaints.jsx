@@ -12,7 +12,7 @@ import {
   Select,
   MenuItem,
   Button,
-  Typography,
+  Typography
 } from "@mui/material";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -23,6 +23,7 @@ import {
 } from "../services/allAPI";
 import { toast } from "react-toastify";
 import MapComponent from "./MapComponent";
+import ReactLoading from "react-loading";
 
 function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
   const [expandedComplaint, setExpandedComplaint] = useState(null);
@@ -34,14 +35,22 @@ function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   const [complaintStatusUpdate, setComplaintStatusUpdate] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchComplaints = async () => {
-    const response = await getAllComplaints(getTokenHeader());
-    if (response.status === 200) {
-      setAllComplaints(response.data);
-      setFilteredComplaints(response.data); // Initialize filteredComplaints
-    } else {
+    setLoading(true);
+    try {
+      const response = await getAllComplaints(getTokenHeader());
+      if (response.status === 200) {
+        setAllComplaints(response.data);
+        setFilteredComplaints(response.data); // Initialize filteredComplaints
+      } else {
+        toast.error("Error fetching complaints");
+      }
+    } catch (error) {
       toast.error("Error fetching complaints");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,23 +141,41 @@ function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
 
   const handleStatusUpdate = async (complaintData) => {
     if (complaintStatusUpdate) {
-      const response = await updateComplaintStatus(
-        complaintData,
-        getTokenHeader()
-      );
-      if (response.status === 200) {
-        toast.success("Complaint status updated successfully");
-        fetchComplaints();
-      } else {
+      setLoading(true);
+      try {
+        const response = await updateComplaintStatus(
+          complaintData,
+          getTokenHeader()
+        );
+        if (response.status === 200) {
+          toast.success("Complaint status updated successfully");
+          fetchComplaints();
+        } else {
+          toast.error("Error updating complaint status");
+        }
+      } catch (error) {
         toast.error("Error updating complaint status");
+      } finally {
+        setLoading(false);
+        setComplaintStatusUpdate({});
       }
-      setComplaintStatusUpdate({});
     }
   };
 
   return (
     <>
       <h3 className="mt-5">All Complaints</h3>
+      {loading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="50vh"
+        >
+          <ReactLoading type="spin" color="#1976d2" height={80} width={80} />
+        </Box>
+      ) : (
+        <>
       <Box
         display={"flex"}
         alignItems={"center"}
@@ -317,6 +344,7 @@ function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
           color="primary"
         />
       </Box>
+    </>)}
     </>
   );
 }
