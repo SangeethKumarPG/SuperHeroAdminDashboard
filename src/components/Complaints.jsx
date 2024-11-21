@@ -12,20 +12,17 @@ import {
   Select,
   MenuItem,
   Button,
-  Typography
+  Typography,
+  Container,
 } from "@mui/material";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import {
-  getAllComplaints,
-  getTokenHeader,
-  updateComplaintStatus,
-} from "../services/allAPI";
+import { getAllComplaints, getTokenHeader, updateComplaintStatus } from "../services/allAPI";
 import { toast } from "react-toastify";
 import MapComponent from "./MapComponent";
 import ReactLoading from "react-loading";
 
-function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
+function Complaints({ complaintTypeFilter, setComplaintTypeFilter }) {
   const [expandedComplaint, setExpandedComplaint] = useState(null);
   const [allComplaints, setAllComplaints] = useState([]);
   const [filteredComplaints, setFilteredComplaints] = useState([]);
@@ -163,146 +160,101 @@ function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
   };
 
   return (
-    <>
-      <h3 className="mt-5">All Complaints</h3>
+    <Container maxWidth="lg">
+      <Typography variant="h4" className="mt-5" textAlign="center">
+        All Complaints
+      </Typography>
+
       {loading ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          height="50vh"
-        >
+        <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
           <ReactLoading type="spin" color="#1976d2" height={80} width={80} />
         </Box>
       ) : (
         <>
-      <Box
-        display={"flex"}
-        alignItems={"center"}
-        justifyContent={"space-between"}
-        className="mt-2 p-2"
-      >
-        <TextField
-          label="Search by category, danger level, description or date"
-          variant="outlined"
-          fullWidth
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <Button
-          variant="outlined"
-          //reset filters
-          onClick={() => {
-            setSearchQuery("");
-            setFilter("");
-            setComplaintTypeFilter(null);
-          }}
-          sx={{
-            height: "3.5rem",
-            "&:hover": { backgroundColor: "red", color: "white" },
-          }}
-        >
-          <FilterAltOffIcon />
-        </Button>
-      </Box>
-      <Box
-        display={"flex"}
-        justifyContent={"space-between"}
-        alignItems={"center"}
-        p={2}
-      >
-        <Button
-          variant="outlined"
-          onClick={() => setFilter("immediate")}
-          sx={{ "&:hover": { backgroundColor: "red", color: "white" } }}
-        >
-          Immediate Attention
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => setFilter("new")}
-          sx={{ "&:hover": { backgroundColor: "orange", color: "white" } }}
-        >
-          New Issues
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => setFilter("pending")}
-          sx={{ "&:hover": { backgroundColor: "yellowgreen", color: "white" } }}
-        >
-          Pending Issues
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => setFilter("resolved")}
-          sx={{ "&:hover": { backgroundColor: "green", color: "white" } }}
-        >
-          Resolved Issues
-        </Button>
-      </Box>
-      <Box
-        display={"flex"}
-        justifyContent={"space-between"}
-        sx={{ width: "100%" }}
-      >
-        <Box sx={{ flex: 1, textAlign: "center" }}>
-          <Typography variant="h6">Id</Typography>
-        </Box>
-        <Box sx={{ flex: 1, textAlign: "center" }}>
-          <Typography variant="h6">Type</Typography>
-        </Box>
-        <Box sx={{ flex: 1, textAlign: "center" }}>
-          <Typography variant="h6">Danger Level</Typography>
-        </Box>
-        <Box sx={{ flex: 1, textAlign: "center" }}>
-          <Typography variant="h6">Date</Typography>
-        </Box>
-      </Box>
-      {currentComplaints.length > 0 ? (
-        currentComplaints.map((complaint, index) => (
-          <Box key={complaint._id}>
-            <Accordion
-              expanded={expandedComplaint === complaint._id}
-              onChange={() =>
-                setExpandedComplaint(
-                  expandedComplaint === complaint._id ? null : complaint._id
-                )
-              }
+          <Box display="flex" alignItems="center" className="mt-2 p-2">
+            <TextField
+              label="Search complaints"
+              variant="outlined"
+              fullWidth
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ marginRight: 2 }}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setSearchQuery("");
+                setFilter("");
+                setComplaintTypeFilter(null);
+              }}
+              sx={{
+                height: "3.5rem",
+                "&:hover": { backgroundColor: "red", color: "white" },
+              }}
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                style={{ padding: "0 10px" }}
+              <FilterAltOffIcon />
+            </Button>
+          </Box>
+
+          <Box display="flex" justifyContent="space-between" alignItems="center" p={2}>
+            {["immediate", "new", "pending", "resolved"].map((type) => (
+              <Button
+                key={type}
+                variant="outlined"
+                onClick={() => setFilter(type)}
+                sx={{
+                  "&:hover": {
+                    backgroundColor: {
+                      immediate: "red",
+                      new: "orange",
+                      pending: "yellowgreen",
+                      resolved: "green",
+                    }[type],
+                    color: "white",
+                  },
+                }}
               >
-                <Box display="flex" justifyContent="space-between" width="100%">
-                  <Typography sx={{ flex: 1, textAlign: "center" }}>
-                    {startIndex + index + 1}
-                  </Typography>
-                  <Typography sx={{ flex: 1, textAlign: "center" }}>
-                    {complaint?.complaintType}
-                  </Typography>
-                  <Typography sx={{ flex: 1, textAlign: "center" }}>
-                    {complaint?.dangerLevel}
-                  </Typography>
-                  <Typography sx={{ flex: 1, textAlign: "center" }}>
-                    {complaint?.createdDate}
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box
-                  display={"flex"}
-                  justifyContent={"center"}
-                  alignItems={"center"}
-                  flexDirection={"column"}
-                >
-                  <Typography variant="h6">{complaint?.description}</Typography>
-                  <FormControl fullWidth variant="outlined" className="p-2">
-                    <InputLabel id="status-select-label">
-                      Complaint Status
-                    </InputLabel>
+                {type.charAt(0).toUpperCase() + type.slice(1)} Issues
+              </Button>
+            ))}
+          </Box>
+
+          {currentComplaints.map((complaint, index) => (
+            <Box key={complaint._id} p={2} borderBottom="1px solid lightgray">
+              {/* Row before accordion */}
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                bgcolor="#f9f9f9"
+                p={1}
+                borderRadius={1}
+                mb={1}
+              >
+                <Typography variant="body2"><b>ID:</b> {index + 1}</Typography>
+                <Typography variant="body2"><b>Type:</b> {complaint.complaintType}</Typography>
+                <Typography variant="body2"><b>Danger Level:</b> {complaint.dangerLevel}</Typography>
+                <Typography variant="body2"><b>Date:</b> {complaint.createdDate}</Typography>
+              </Box>
+
+              {/* Accordion */}
+              <Accordion
+                expanded={expandedComplaint === complaint._id}
+                onChange={() =>
+                  setExpandedComplaint(
+                    expandedComplaint === complaint._id ? null : complaint._id
+                  )
+                }
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>Description</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>{complaint.description}</Typography>
+                  <FormControl fullWidth className="mt-2">
+                    <InputLabel>Status</InputLabel>
                     <Select
-                      labelId="status-select-label"
-                      value={complaint?.status}
+                      value={complaint.status}
                       onChange={(e) => {
                         e.preventDefault();
                         const updatedStatus = e.target.value;
@@ -316,11 +268,11 @@ function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
                           status: updatedStatus,
                         });
                       }}
-                      aria-label="status-select"
+                      className="mt-2"
                     >
                       <MenuItem value="open">Open</MenuItem>
-                      <MenuItem value="resolved">Resolved</MenuItem>
                       <MenuItem value="pending">Pending</MenuItem>
+                      <MenuItem value="resolved">Resolved</MenuItem>
                     </Select>
                   </FormControl>
                   <MapComponent
@@ -328,24 +280,22 @@ function Complaints({complaintTypeFilter, setComplaintTypeFilter}) {
                     longitude={location.longitude}
                     markers={[{ location: complaint?.location }]}
                   />
-                </Box>
-              </AccordionDetails>
-            </Accordion>
+                </AccordionDetails>
+              </Accordion>
+            </Box>
+          ))}
+
+          <Box display="flex" justifyContent="center" mt={3}>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+            />
           </Box>
-        ))
-      ) : (
-        <Typography variant="h6">No complaints found</Typography>
+        </>
       )}
-      <Box display="flex" justifyContent="center" mt={3}>
-        <Pagination
-          count={totalPages}
-          page={currentPage}
-          onChange={handlePageChange}
-          color="primary"
-        />
-      </Box>
-    </>)}
-    </>
+    </Container>
   );
 }
 
